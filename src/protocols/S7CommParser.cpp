@@ -4,7 +4,6 @@
 #include <iomanip>
 #include <cstring>
 
-// --- Helper Functions ---
 static uint16_t safe_ntohs(const u_char* ptr) {
     uint16_t val_n;
     memcpy(&val_n, ptr, 2);
@@ -14,7 +13,6 @@ static uint32_t s7_addr_to_int(const u_char* ptr) {
     return (ptr[0] << 16) | (ptr[1] << 8) | ptr[2];
 }
 
-// Optimized PDU Parser
 std::string parse_s7_pdu_optimized(const u_char* s7pdu, int s7pdu_len, const S7CommRequestInfo* req_info) {
     if (s7pdu_len < 10) return "{}";
     std::stringstream ss;
@@ -38,11 +36,10 @@ std::string parse_s7_pdu_optimized(const u_char* s7pdu, int s7pdu_len, const S7C
                 
                 uint8_t area = item_ptr[8];
                 ss << (i > 0 ? "," : "") << "{";
-                // --- 수정: Syntax ID와 Transport Size 필드 추가 ---
                 ss << "\"syn\":" << (int)item_ptr[2];
                 ss << ",\"tsz\":" << (int)item_ptr[3];
                 ss << ",\"amt\":" << safe_ntohs(item_ptr + 4);
-                if (area == 0x84) { // Area: Data blocks (DB)
+                if (area == 0x84) {
                     ss << ",\"db\":" << safe_ntohs(item_ptr + 6);
                 }
                 ss << ",\"ar\":" << (int)area;
@@ -89,7 +86,6 @@ std::string parse_s7_pdu_optimized(const u_char* s7pdu, int s7pdu_len, const S7C
     return ss.str();
 }
 
-// --- IProtocolParser Interface Implementation ---
 std::string S7CommParser::getName() const { return "s7comm"; }
 
 bool S7CommParser::isProtocol(const u_char* payload, int size) const {
@@ -111,7 +107,7 @@ void S7CommParser::parse(const PacketInfo& info) {
         pdu_json = parse_s7_pdu_optimized(s7_pdu, s7_pdu_len, &req_info);
         m_pending_requests[info.flow_id].erase(pdu_ref);
     }
-    else if (rosctr == 0x01) { // Job
+    else if (rosctr == 0x01) {
         S7CommRequestInfo new_req;
         new_req.timestamp = std::chrono::steady_clock::now();
         new_req.pdu_ref = pdu_ref;
@@ -119,7 +115,7 @@ void S7CommParser::parse(const PacketInfo& info) {
         if (param_len > 0 && (s7_pdu_len >= 10 + param_len)) {
             const u_char* param = s7_pdu + 10;
             new_req.function_code = param[0];
-            if ((new_req.function_code == 0x04 || new_req.function_code == 0x05) && param_len >=2) { // Read/Write Var
+            if ((new_req.function_code == 0x04 || new_req.function_code == 0x05) && param_len >=2) {
                 uint8_t item_count = param[1];
                 const u_char* item_ptr = param + 2;
                 for(int i=0; i < item_count; ++i) {
@@ -133,7 +129,7 @@ void S7CommParser::parse(const PacketInfo& info) {
         pdu_json = parse_s7_pdu_optimized(s7_pdu, s7_pdu_len, nullptr);
         m_pending_requests[info.flow_id][pdu_ref] = new_req;
     } else {
-        return; // Not a job or a mapped response
+        return;
     }
     
     std::stringstream details_ss;

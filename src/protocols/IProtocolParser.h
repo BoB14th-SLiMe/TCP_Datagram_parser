@@ -6,7 +6,6 @@
 #include <vector>
 #include "pcap.h"
 
-// Packet information structure passed to parsers
 struct PacketInfo {
     std::string timestamp;
     std::string flow_id;
@@ -23,7 +22,6 @@ struct PacketInfo {
 
 class IProtocolParser {
 public:
-    // --- MODIFICATION: Declare the virtual destructor without a definition or '= default' ---
     virtual ~IProtocolParser();
 
     virtual std::string getName() const = 0;
@@ -32,5 +30,5 @@ public:
     virtual void setOutputStream(std::ofstream* json_stream, std::ofstream* csv_stream) = 0;
 };
 
-#endif // IPROTOCOL_PARSER_H
+#endif
 

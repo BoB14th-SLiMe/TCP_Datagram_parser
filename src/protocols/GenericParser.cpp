@@ -1,6 +1,6 @@
 #include "GenericParser.h"
 #include <sstream>
-#include <cstring> // For memcmp
+#include <cstring>
 
 GenericParser::GenericParser(const std::string& name) : m_name(name) {}
 
@@ -35,7 +35,6 @@ void GenericParser::parse(const PacketInfo& info) {
     std::stringstream details_ss;
     details_ss << "{\"len\":" << info.payload_size << "}";
 
-    // Corrected function call
     writeOutput(info, details_ss.str());
 }
 

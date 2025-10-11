@@ -4,14 +4,14 @@
 #include "BaseProtocolParser.h"
 #include <chrono>
 #include <vector>
-#include <map> // <map> 헤더 추가
+#include <map>
 
-// S7comm 아이템 구조체
+// S7comm item structure
 struct S7CommItem {
-    // 응답 파싱 시 아이템 개수만 필요하므로 비워둘 수 있습니다.
+    // Can be empty as we only need the item count for response parsing
 };
 
-// S7comm 요청 정보 구조체
+// S7comm request info structure
 struct S7CommRequestInfo {
     uint16_t pdu_ref = 0;
     uint8_t function_code = 0;
@@ -28,9 +28,8 @@ public:
     void parse(const PacketInfo& info) override;
 
 private:
-    // S7comm 프로토콜에 대한 보류 중인 요청 맵
+    // Map of pending requests for the S7comm protocol
     std::map<std::string, std::map<uint16_t, S7CommRequestInfo>> m_pending_requests;
 };
 
 #endif // S7COMM_PARSER_H
-

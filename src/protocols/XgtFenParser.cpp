@@ -5,14 +5,10 @@
 #include <cstring>
 #include <string>
 
-// --- Helper Functions ---
-
-// Little-Endian 2 bytes to short
 static uint16_t safe_letohs(const u_char* ptr) {
     return (uint16_t)(ptr[0] | (ptr[1] << 8));
 }
 
-// Helper to append hex data to stringstream
 static void append_hex_data(std::stringstream& ss, const u_char* data, int len) {
     ss << "\"";
     for(int i = 0; i < len; ++i) {
@@ -21,7 +17,6 @@ static void append_hex_data(std::stringstream& ss, const u_char* data, int len) 
     ss << "\"";
 }
 
-// Optimized PDU parser with full feature support
 std::string parse_fenet_pdu(const u_char* pdu, int pdu_len, const XgtFenRequestInfo* req_info) {
     if (pdu_len < 2) return "{}";
     std::stringstream ss;
@@ -30,7 +25,6 @@ std::string parse_fenet_pdu(const u_char* pdu, int pdu_len, const XgtFenRequestI
     uint16_t command_code = safe_letohs(pdu);
     uint16_t datatype_code = (pdu_len >= 4) ? safe_letohs(pdu + 2) : 0;
 
-    // --- 수정: 머신러닝 처리를 위해 숫자 값으로 직접 출력 ---
     ss << "\"cmd\":" << command_code;
     if (pdu_len >= 4) {
         ss << ",\"dt\":" << datatype_code;
@@ -102,9 +96,6 @@ std::string parse_fenet_pdu(const u_char* pdu, int pdu_len, const XgtFenRequestI
     return ss.str();
 }
 
-
-// --- IProtocolParser Interface Implementation ---
-
 XgtFenParser::~XgtFenParser() {}
 
 std::string XgtFenParser::getName() const { return "xgt_fen"; }
@@ -142,7 +133,7 @@ void XgtFenParser::parse(const PacketInfo& info) {
              m_pending_requests[info.flow_id][invoke_id] = new_req;
         }
     } else {
-        return; // Unknown source or unmapped response
+        return;
     }
     
     std::stringstream details_ss;

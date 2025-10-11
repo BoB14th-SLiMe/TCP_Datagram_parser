@@ -1,7 +1,6 @@
 #include "BaseProtocolParser.h"
 #include <sstream>
 
-// 추가: CSV 이스케이프 처리 구현
 std::string BaseProtocolParser::escape_csv(const std::string& s) {
     std::string result = "\"";
     for (char c : s) {
@@ -21,7 +20,6 @@ void BaseProtocolParser::setOutputStream(std::ofstream* json_stream, std::ofstre
 }
 
 void BaseProtocolParser::writeOutput(const PacketInfo& info, const std::string& details_json) {
-    // 스트림이 유효하면 JSONL 파일에 기록
     if (m_json_stream && m_json_stream->is_open()) {
         *m_json_stream << "{\"@timestamp\":\"" << info.timestamp << "\","
                        << "\"sip\":\"" << info.src_ip << "\",\"sp\":" << info.src_port << ","
@@ -30,7 +28,6 @@ void BaseProtocolParser::writeOutput(const PacketInfo& info, const std::string& 
                        << "\"d\":" << details_json << "}\n";
     }
 
-    // 스트림이 유효하면 CSV 파일에 기록
     if (m_csv_stream && m_csv_stream->is_open()) {
         *m_csv_stream << info.timestamp << ","
                       << info.src_ip << "," << info.src_port << ","
@@ -39,4 +36,3 @@ void BaseProtocolParser::writeOutput(const PacketInfo& info, const std::string& 
                       << escape_csv(details_json) << "\n";
     }
 }
-

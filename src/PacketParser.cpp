@@ -10,7 +10,6 @@
 #include <vector>
 #include <tuple>
 
-// 플랫폼에 따라 디렉토리 생성 및 시간 관련 헤더를 포함합니다.
 #ifdef _WIN32
 #include <direct.h>
 #else
@@ -36,7 +35,6 @@ static std::string format_timestamp(const struct timeval& ts) {
     time_t sec = ts.tv_sec;
     struct tm gmt;
 
-    // 플랫폼에 맞는 스레드 안전한 시간 변환 함수 사용
     #ifdef _WIN32
         gmtime_s(&gmt, &sec);
     #else
@@ -44,14 +42,12 @@ static std::string format_timestamp(const struct timeval& ts) {
     #endif
 
     strftime(buft, sizeof buft, "%Y-%m-%dT%H:%M:%S", &gmt);
-    // Windows에서는 ts.tv_usec가 long 타입일 수 있으므로 int로 캐스팅
     snprintf(buf, sizeof buf, "%.*s.%06dZ", (int)sizeof(buft) - 1, buft, (int)ts.tv_usec);
     return std::string(buf);
 }
 
 PacketParser::PacketParser(const std::string& output_dir)
     : m_output_dir(output_dir) {
-    // 플랫폼에 맞는 디렉토리 생성 함수 사용
     #ifdef _WIN32
         _mkdir(m_output_dir.c_str());
     #else
@@ -151,7 +147,6 @@ void PacketParser::parse(const struct pcap_pkthdr* header, const u_char* packet)
                 m_output_streams["arp"].jsonl_stream << "{\"@timestamp\":\"" << timestamp_str << "\",\"d\":" << details_json << "}\n";
             }
             if (m_output_streams["arp"].csv_stream.is_open()) {
-                // --- 수정: ARP에 대해 빈 컬럼을 포함하여 CSV 형식 통일 ---
                 m_output_streams["arp"].csv_stream << timestamp_str << ",,,,,,,,\"" << escape_csv(details_json) << "\"\n";
             }
         }

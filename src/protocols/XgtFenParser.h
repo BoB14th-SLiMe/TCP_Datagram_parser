@@ -7,7 +7,7 @@
 #include <map>
 #include <string>
 
-// FEnet 요청에 대한 정보를 저장하는 구조체
+// Structure to store information about FEnet requests
 struct XgtFenRequestInfo {
     uint16_t invoke_id = 0;
     uint16_t command = 0;
@@ -17,7 +17,6 @@ struct XgtFenRequestInfo {
 
 class XgtFenParser : public BaseProtocolParser {
 public:
-    // --- 수정: 소멸자를 여기서 선언합니다 ---
     ~XgtFenParser() override;
 
     std::string getName() const override;
@@ -25,9 +24,8 @@ public:
     void parse(const PacketInfo& info) override;
 
 private:
-    // Flow ID와 Invoke ID를 키로 사용하여 보류 중인 요청을 관리
+    // Manages pending requests using Flow ID and Invoke ID as keys
     std::map<std::string, std::map<uint16_t, XgtFenRequestInfo>> m_pending_requests;
 };
 
 #endif // XGT_FEN_PARSER_H
-

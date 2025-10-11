@@ -4,14 +4,12 @@
 #include <iomanip>
 #include <cstring>
 
-// Helper function to safely convert network byte order to host byte order for uint16_t
 static uint16_t safe_ntohs(const u_char* ptr) {
     uint16_t val_n;
     memcpy(&val_n, ptr, 2);
     return ntohs(val_n);
 }
 
-// Optimized PDU Parser for Modbus
 std::string parse_modbus_pdu_optimized(const u_char* pdu, int pdu_len, const ModbusRequestInfo* req_info) {
     if (pdu_len < 1) return "{}";
     uint8_t function_code = pdu[0];
@@ -22,13 +20,13 @@ std::string parse_modbus_pdu_optimized(const u_char* pdu, int pdu_len, const Mod
     ss << "{";
     ss << "\"fc\":" << (int)(function_code & 0x7F);
 
-    if (function_code > 0x80) { // Exception
+    if (function_code > 0x80) {
         if (data_len >= 1) ss << ",\"err\":" << (int)data[0];
     } else {
         switch (function_code) {
-            case 1: case 2: // Read Coils / Read Discrete Inputs
-            case 3: case 4: { // Read Holding Registers / Read Input Registers
-                if (req_info) { // Response
+            case 1: case 2:
+            case 3: case 4: {
+                if (req_info) {
                     if (data_len >= 1) {
                         uint8_t byte_count = data[0];
                         ss << ",\"bc\":" << (int)byte_count;
@@ -45,7 +43,7 @@ std::string parse_modbus_pdu_optimized(const u_char* pdu, int pdu_len, const Mod
                             ss << "}";
                         }
                     }
-                } else { // Request
+                } else {
                     if (data_len >= 4) {
                         ss << ",\"addr\":" << safe_ntohs(data)
                            << ",\"qty\":" << safe_ntohs(data + 2);
@@ -53,20 +51,20 @@ std::string parse_modbus_pdu_optimized(const u_char* pdu, int pdu_len, const Mod
                 }
                 break;
             }
-            case 5: case 6: { // Write Single Coil/Register
+            case 5: case 6: {
                 if (data_len >= 4) {
                      ss << ",\"addr\":" << safe_ntohs(data)
                         << ",\"val\":" << safe_ntohs(data + 2);
                 }
                 break;
             }
-            case 15: case 16: { // Write Multiple Coils/Registers
-                if (req_info) { // Response
+            case 15: case 16: {
+                if (req_info) {
                      if (data_len >= 4) {
                         ss << ",\"addr\":" << safe_ntohs(data)
                            << ",\"qty\":" << safe_ntohs(data + 2);
                     }
-                } else { // Request
+                } else {
                     if (data_len >= 5) {
                         ss << ",\"addr\":" << safe_ntohs(data)
                            << ",\"qty\":" << safe_ntohs(data + 2)
@@ -81,7 +79,6 @@ std::string parse_modbus_pdu_optimized(const u_char* pdu, int pdu_len, const Mod
     return ss.str();
 }
 
-// --- IProtocolParser Interface Implementation ---
 std::string ModbusParser::getName() const { return "modbus_tcp"; }
 
 bool ModbusParser::isProtocol(const u_char* payload, int size) const {
@@ -95,11 +92,11 @@ void ModbusParser::parse(const PacketInfo& info) {
     if (pdu_len < 1) return;
 
     std::string pdu_json;
-    if (m_pending_requests[info.flow_id].count(trans_id)) { // Response
+    if (m_pending_requests[info.flow_id].count(trans_id)) {
         ModbusRequestInfo req_info = m_pending_requests[info.flow_id][trans_id];
         pdu_json = parse_modbus_pdu_optimized(pdu, pdu_len, &req_info);
         m_pending_requests[info.flow_id].erase(trans_id);
-    } else { // Request
+    } else {
         ModbusRequestInfo new_req;
         new_req.function_code = pdu[0];
         if ((new_req.function_code >= 1 && new_req.function_code <= 6) || new_req.function_code == 15 || new_req.function_code == 16) {
@@ -112,7 +109,5 @@ void ModbusParser::parse(const PacketInfo& info) {
     std::stringstream details_ss;
     details_ss << "{\"tid\":" << trans_id << ",\"pdu\":" << pdu_json << "}";
     
-    // Corrected function call
     writeOutput(info, details_ss.str());
 }
-

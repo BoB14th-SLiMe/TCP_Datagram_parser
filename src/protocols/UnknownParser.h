@@ -1,9 +1,8 @@
 #ifndef UNKNOWN_PARSER_H
 #define UNKNOWN_PARSER_H
 
-#include "BaseProtocolParser.h" // BaseProtocolParser를 포함
+#include "BaseProtocolParser.h"
 
-// BaseProtocolParser를 상속받도록 수정
 class UnknownParser : public BaseProtocolParser {
 public:
     ~UnknownParser() override = default;
